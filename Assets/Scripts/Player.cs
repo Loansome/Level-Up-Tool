@@ -3,25 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum PlayerStatus { Health, Magic, Attack, Defense }
+
 public class Player : MonoBehaviour
 {
-    public BaseStats baseStats;
+    [SerializeField] private BaseStats baseStats;
 
-    public Slider healthBar;
-    public Text healthText;
+    [SerializeField] private Slider healthBar;
+    [SerializeField] private Text healthText;
 
-    public float maxHealth;
-    public float maxMagic;
-    public float attackPower;
-    public float defensePower;
+    private float maxHealth;
+    private float maxMagic;
+    private float attackPower;
+    private float defensePower;
 
     private float _healthModifier;
     private float _magicModifier;
     private float _attackModifier;
     private float _defenseModifier;
 
-    public float currentHealth;
-    public float currentMagic;
+    private float currentHealth;
+    [SerializeField] private float currentMagic;
+
+    [SerializeField] private List<Ability> heldAbilities = new();
 
     void Awake()
     {
@@ -40,38 +44,76 @@ public class Player : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E))
             TakeDamage(5);
-        if (Input.GetKeyDown(KeyCode.R))
-            IncreaseMaxHealth(10);
+        if (Input.GetKeyDown(KeyCode.J))
+            UseAbility("Blizzard");
+        if (Input.GetKeyDown(KeyCode.K))
+            UseAbility("Flare");
     }
+
+    public void TakeDamage(float amount)
+	{
+        if (currentHealth > 0)
+        {
+            currentHealth -= amount - (defensePower / 10);
+            HealthBarUpdate();
+        }
+        else currentHealth = 0;
+	}
+    public void UseAbility(string name)
+	{
+        if (currentMagic > 0)
+        {
+            Ability spell = heldAbilities.Find(t => t.name == name);
+            if (spell != null) DecreaseStat(PlayerStatus.Magic, spell.cost);
+        }
+        else currentMagic = 0;
+    }
+
+    public void IncreaseStat(PlayerStatus stat, float amount)
+	{
+        switch (stat)
+		{
+            case PlayerStatus.Health:
+                _healthModifier += amount;
+				maxHealth = baseStats.healthPoints + _healthModifier;
+				currentHealth += amount;
+                HealthBarUpdate();
+                break;
+            case PlayerStatus.Magic:
+                _magicModifier += amount;
+                maxMagic = baseStats.magicPoints + _magicModifier;
+                currentMagic += amount;
+                //HealthBarUpdate();
+                break;
+            case PlayerStatus.Attack:
+                _attackModifier += amount;
+                attackPower = baseStats.attackPower + _attackModifier;
+                //HealthBarUpdate();
+                break;
+            case PlayerStatus.Defense:
+                _defenseModifier += amount;
+                defensePower = baseStats.defensePower + _defenseModifier;
+                //HealthBarUpdate();
+                break;
+        }
+	}
+    public void DecreaseStat(PlayerStatus stat, float amount)
+	{
+        IncreaseStat(stat, -amount);
+	}
+    public void AddAbility(Ability ability)
+	{
+        heldAbilities.Add(ability);
+	}
+    public void RemoveAbility(Ability ability)
+	{
+        heldAbilities.Remove(ability);
+	}
 
     private void HealthBarUpdate()
 	{
         healthBar.maxValue = maxHealth;
         healthBar.value = currentHealth;
-        healthText.text = currentHealth + "/" + maxHealth;
-	}
-
-    public void TakeDamage(float amount)
-	{
-        currentHealth -= amount;
-        HealthBarUpdate();
-	}
-    public void IncreaseMaxHealth(float amount)
-	{
-        _healthModifier += amount;
-        maxHealth = baseStats.healthPoints + _healthModifier;
-        HealthBarUpdate();
-	}
-    public void IncreaseMagic(float amount)
-	{
-        _magicModifier += amount;
-	}
-    public void IncreaseDamagePower(float amount)
-	{
-        _attackModifier += amount;
-	}
-    public void IncreaseDefensePower(float amount)
-	{
-        _defenseModifier += amount;
+        healthText.text = (int)currentHealth + "/" + maxHealth;
 	}
 }

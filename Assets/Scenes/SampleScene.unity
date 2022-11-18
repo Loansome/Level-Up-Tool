@@ -417,22 +417,22 @@ MonoBehaviour:
   experienceText: {fileID: 1826843392}
   levelText: {fileID: 695760303}
   minMaxLevel: {x: 0, y: 10}
-  minMaxExperience: {x: 0, y: 100}
+  minMaxExperience: {x: 0, y: 1000}
   experienceCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
       value: 0
-      inSlope: 0
-      outSlope: 0
+      inSlope: 0.051187024
+      outSlope: 0.051187024
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.21940929
     - serializedVersion: 3
       time: 10
-      value: 100
+      value: 1000
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -444,8 +444,6 @@ MonoBehaviour:
     m_RotationOrder: 4
   currentLevel: 0
   currentExperience: 0
-  previousLevel: 0
-  nextLevel: 0
   levelUpBonus:
   - name: Level 1
     healthBonus: 10
@@ -470,7 +468,7 @@ MonoBehaviour:
     magicBonus: 5
     attackBonus: 2
     defenseBonus: 1
-    abilityBonus: {fileID: 0}
+    abilityBonus: {fileID: 11400000, guid: 07759da2a7d98df4dbb0c41a4a10d5af, type: 2}
   - name: Level 5
     healthBonus: 10
     magicBonus: 5
@@ -506,7 +504,7 @@ MonoBehaviour:
     magicBonus: 5
     attackBonus: 2
     defenseBonus: 1
-    abilityBonus: {fileID: 0}
+    abilityBonus: {fileID: 11400000, guid: 161e64d2ef823c241b71c4c89f277c92, type: 2}
 --- !u!114 &280991231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -522,12 +520,8 @@ MonoBehaviour:
   baseStats: {fileID: 11400000, guid: 0a7723ad99ff6af42983a901a2fd34a6, type: 2}
   healthBar: {fileID: 143485175}
   healthText: {fileID: 1784561611}
-  maxHealth: 0
-  maxMagic: 0
-  attackPower: 0
-  defensePower: 0
-  currentHealth: 0
   currentMagic: 0
+  heldAbilities: []
 --- !u!4 &280991232
 Transform:
   m_ObjectHideFlags: 0

@@ -5,6 +5,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Level System/Ability")]
 public class Ability : ScriptableObject
 {
-    public KeyCode keybind;
-    public float amount;
+    public string description;
+    public float damage = 10f;
+    public float range = 1f;
+    public float cost = 5f;
 }
