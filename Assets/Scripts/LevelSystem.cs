@@ -14,18 +14,25 @@ public class LevelSystem : MonoBehaviour
     [SerializeField] private Text levelRewardsText;
 
     [Header("Level Data")]
-    [SerializeField] private Vector2Int minMaxLevel = new Vector2Int(0, 10); // X value is minimum level, Y value is maximum level.
-    [SerializeField] private Vector2Int minMaxExperience = new Vector2Int(0, 100); // X value is the experience at level 0, Y value is total experience needed for max level.
+    [Tooltip("Sets the lowest (X) and highest (Y) levels the player can reach")]
+    [SerializeField] private Vector2Int minMaxLevel = new Vector2Int(0, 10);
+    [Tooltip("Set the starting (X) and total (Y) amount of experience the player can obtain over all levels")]
+    [SerializeField] private Vector2Int minMaxExperience = new Vector2Int(0, 100);
+
+    [Tooltip("Set the curve for how much experience is gained per level")]
     [SerializeField] private AnimationCurve experienceCurve;
-    [SerializeField] private int currentLevel;
     [SerializeField] private int currentExperience;
+    private int currentLevel;
     private int previousLevelExperience;
     private int nextLevelExperience;
 
-    [SerializeField] private List<LevelBonus> levelUpBonus = new(); // List of every bonus awarded to the player for each level.
+    [Tooltip("List of bonuses the player is awarded for each level")]
+    [SerializeField] private List<LevelBonus> levelUpBonus = new();
 
     private bool isMaxLevel = false;
     private Coroutine runningTimer = null; // Used for the timer that deactivates the "Level Up!" menu.
+
+
 
 	private void Update()
 	{
@@ -41,6 +48,15 @@ public class LevelSystem : MonoBehaviour
         if (nextLevelExperience - currentExperience <= 0) LevelUp();
 
         LevelBarUpdate();
+    }
+
+    public void GainExperience(int experience)
+	{
+        currentExperience += experience;
+	}
+    public void LoseExperience(int experience)
+    {
+        currentExperience -= experience;
     }
 
     private void LevelUp()
@@ -132,7 +148,7 @@ public class LevelSystem : MonoBehaviour
                 levelUpBonus[i] = new("Level " + (i + 1), 10f, 5f, 2f, 1f);
             }
         }
-        else if (minMaxLevel.y < levelUpBonus.Count) // When max levels is decreased, remove the bonuses for those levels. **WILL NOT SAVE VALUES!!**
+        else if (minMaxLevel.y < levelUpBonus.Count) // When max levels is decreased, remove the bonuses for those levels. **WILL NOT SAVE VALUES!! Undo/Redo can help**
         {
             for (int i = minMaxLevel.y; i < levelUpBonus.Count; i++)
             {

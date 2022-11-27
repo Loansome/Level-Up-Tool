@@ -77,7 +77,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void IncreaseStat(PlayerStatus stat, float amount) // Increases the maximum value of the stat.
+    public void IncreaseStat(PlayerStatus stat, float amount) // Increases the maximum value of the specified stat.
 	{
         switch (stat)
 		{
