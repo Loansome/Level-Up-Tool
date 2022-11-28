@@ -52,13 +52,13 @@ public class UIManager : MonoBehaviour
 
 
     // LevelSystem UI
-    public void LevelBarUpdate(int nextEXP, int prevEXP, int currentEXP) // Updates the experience bar and text.
+    public void LevelBarUpdate(int nextEXP, int prevEXP, int currentEXP, int currentLVL) // Updates the experience bar and text.
     {
         experienceBar.maxValue = nextEXP;
         experienceBar.minValue = prevEXP;
         experienceBar.value = currentEXP;
         experienceText.text = currentEXP.ToString();
-        levelText.text = currentEXP.ToString();
+        levelText.text = currentLVL.ToString();
     }
 
     public void LevelRewardsMenuUpdate(LevelBonus levelRewards) // Enables the "Level Up!" menu, sets the visuals for what was upgraded, then disappears after a few seconds.

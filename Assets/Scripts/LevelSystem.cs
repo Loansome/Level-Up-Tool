@@ -40,7 +40,7 @@ public class LevelSystem : MonoBehaviour
         if (currentExperience - _previousLevelExperience < 0) LevelDown(); // If experience goes past the level threshold, award or remove bonuses for that level.
         if (_nextLevelExperience - currentExperience <= 0) LevelUp();
 
-        uiManager.LevelBarUpdate(_nextLevelExperience, _previousLevelExperience, currentExperience);
+        uiManager.LevelBarUpdate(_nextLevelExperience, _previousLevelExperience, currentExperience, _currentLevel);
     }
 
     public void GainExperience(int experience)
