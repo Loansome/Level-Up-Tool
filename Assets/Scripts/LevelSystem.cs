@@ -1,53 +1,46 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class LevelSystem : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Player playerStats; // References to the player and UI elements.
-    [SerializeField] private Slider experienceBar;
-    [SerializeField] private Text experienceText;
-    [SerializeField] private Text levelText;
-    [SerializeField] private GameObject levelRewardsMenu;
-    [SerializeField] private Text levelRewardsText;
+    [SerializeField] private PlayerStats playerStats; // References to the player and UI elements.
+    [SerializeField] private UIManager uiManager;
 
     [Header("Level Data")]
     [Tooltip("Sets the lowest (X) and highest (Y) levels the player can reach")]
     [SerializeField] private Vector2Int minMaxLevel = new Vector2Int(0, 10);
     [Tooltip("Set the starting (X) and total (Y) amount of experience the player can obtain over all levels")]
     [SerializeField] private Vector2Int minMaxExperience = new Vector2Int(0, 100);
-
     [Tooltip("Set the curve for how much experience is gained per level")]
     [SerializeField] private AnimationCurve experienceCurve;
     [SerializeField] private int currentExperience;
-    private int currentLevel;
-    private int previousLevelExperience;
-    private int nextLevelExperience;
+
+    private int _currentLevel;
+    private int _previousLevelExperience;
+    private int _nextLevelExperience;
 
     [Tooltip("List of bonuses the player is awarded for each level")]
     [SerializeField] private List<LevelBonus> levelUpBonus = new();
 
-    private bool isMaxLevel = false;
-    private Coroutine runningTimer = null; // Used for the timer that deactivates the "Level Up!" menu.
-
+    private bool _isMaxLevel = false;
 
 
 	private void Update()
 	{
-        previousLevelExperience = (int)experienceCurve.Evaluate(currentLevel); // Get the experience of the previous/next levels.
-        nextLevelExperience = (int)experienceCurve.Evaluate(currentLevel + 1);
+        _previousLevelExperience = (int)experienceCurve.Evaluate(_currentLevel); // Get the experience of the previous/next levels.
+        _nextLevelExperience = (int)experienceCurve.Evaluate(_currentLevel + 1);
 
-        if (currentLevel < minMaxLevel.x) currentLevel = minMaxLevel.x; // Keeps levels and experience from going under or over the limits.
-        if (currentLevel > minMaxLevel.y) currentLevel = minMaxLevel.y;
+        if (_currentLevel < minMaxLevel.x) _currentLevel = minMaxLevel.x; // Keeps levels and experience from going under or over the limits.
+        if (_currentLevel > minMaxLevel.y) _currentLevel = minMaxLevel.y;
         if (currentExperience < minMaxExperience.x) currentExperience = minMaxExperience.x;
         if (currentExperience > minMaxExperience.y) currentExperience = minMaxExperience.y;
 
-        if (currentExperience - previousLevelExperience < 0) LevelDown(); // If experience goes past the level threshold, award or remove bonuses for that level.
-        if (nextLevelExperience - currentExperience <= 0) LevelUp();
+        if (currentExperience - _previousLevelExperience < 0) LevelDown(); // If experience goes past the level threshold, award or remove bonuses for that level.
+        if (_nextLevelExperience - currentExperience <= 0) LevelUp();
 
-        LevelBarUpdate();
+        uiManager.LevelBarUpdate(_nextLevelExperience, _previousLevelExperience, currentExperience);
     }
 
     public void GainExperience(int experience)
@@ -61,9 +54,9 @@ public class LevelSystem : MonoBehaviour
 
     private void LevelUp()
 	{
-        if (isMaxLevel) return; // Holds the script from errors when max level is reached.
+        if (_isMaxLevel) return; // Holds the script from errors when max level is reached.
 
-        LevelBonus levelRewards = levelUpBonus[currentLevel];
+        LevelBonus levelRewards = levelUpBonus[_currentLevel];
 
         playerStats.IncreaseStat(PlayerStatus.Health, levelRewards.healthBonus); // Award the player with the stat bonuses.
         playerStats.IncreaseStat(PlayerStatus.Magic, levelRewards.magicBonus);
@@ -71,56 +64,27 @@ public class LevelSystem : MonoBehaviour
         playerStats.IncreaseStat(PlayerStatus.Defense, levelRewards.defenseBonus);
         if (levelRewards.abilityBonus != null) playerStats.AddAbility(levelRewards.abilityBonus);
 
-        LevelRewardsUpdate(levelRewards);
+        uiManager.LevelRewardsMenuUpdate(levelRewards);
 
-        currentLevel++;
+        _currentLevel++;
 
-        if (currentLevel == minMaxLevel.y) isMaxLevel = true;
+        if (_currentLevel == minMaxLevel.y) _isMaxLevel = true;
 	}
     private void LevelDown()
 	{
-        currentLevel--;
+        _currentLevel--;
 
-        LevelBonus levelRewards = levelUpBonus[currentLevel];
+        LevelBonus levelRewards = levelUpBonus[_currentLevel];
 
-        playerStats.DecreaseStat(PlayerStatus.Health, levelRewards.healthBonus); // Decrease the player's stats from that level.
+        playerStats.DecreaseStat(PlayerStatus.Health, levelRewards.healthBonus); // Take away the rewards from that level.
         playerStats.DecreaseStat(PlayerStatus.Magic, levelRewards.magicBonus);
         playerStats.DecreaseStat(PlayerStatus.Attack, levelRewards.attackBonus);
         playerStats.DecreaseStat(PlayerStatus.Defense, levelRewards.defenseBonus);
         if (levelRewards.abilityBonus != null) playerStats.RemoveAbility(levelRewards.abilityBonus);
 
-        isMaxLevel = false;
-    }
-    private void LevelBarUpdate() // Updates the experience bar and text.
-	{
-        experienceBar.maxValue = nextLevelExperience;
-        experienceBar.minValue = previousLevelExperience;
-        experienceBar.value = currentExperience;
-        experienceText.text = currentExperience.ToString();
-        levelText.text = currentLevel.ToString();
-	}
-
-    private void LevelRewardsUpdate(LevelBonus levelRewards) // Enables the "Level Up!" menu, sets the visuals for what was upgraded, then disappears after a few seconds.
-    {
-        if (runningTimer != null) StopCoroutine(runningTimer); // If the timer is already running, reset it.
-
-        string rewards = "";
-        if (levelRewards.healthBonus > 0) rewards += "Health Bonus: " + levelRewards.healthBonus + "\n";
-        if (levelRewards.magicBonus > 0) rewards += "Magic Bonus: " + levelRewards.magicBonus + "\n";
-        if (levelRewards.attackBonus > 0) rewards += "Attack Bonus: " + levelRewards.attackBonus + "\n";
-        if (levelRewards.defenseBonus > 0) rewards += "Defense Bonus: " + levelRewards.defenseBonus + "\n";
-        if (levelRewards.abilityBonus != null) rewards += "Ability Unlock! " + levelRewards.abilityBonus.name;
-
-        levelRewardsMenu.SetActive(true);
-        levelRewardsText.text = rewards;
-        runningTimer = StartCoroutine(Timer());
+        _isMaxLevel = false;
     }
 
-    IEnumerator Timer() // Timer used for disabling the "Level Up!" menu.
-	{
-        yield return new WaitForSecondsRealtime(3);
-        levelRewardsMenu.SetActive(false);
-	}
 
     public void OnValidate() // OnValidate is used for updating the Unity inspector values for changes.
 	{
